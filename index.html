@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS Architecture Visualization Tool</title>
+    <style>
+        /* ==============================================
+           GLOBAL STYLES
+           ============================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* ==============================================
+           HEADER & TITLE
+           ============================================== */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1em;
+            font-weight: 300;
+        }
+
+        /* ==============================================
+           CONTAINER LAYOUT
+           ============================================== */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        /* ==============================================
+           CONTROL PANEL
+           ============================================== */
+        .controls {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-label {
+            color: white;
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ==============================================
+           MAIN CONTENT AREA
+           ============================================== */
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        @media (max-width: 1200px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ==============================================
+           VISUALIZATION AREA
+           ============================================== */
+        .visualization {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 600px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            max-width: 800px;
+            max-height: 600px;
+        }
+
+        /* ==============================================
+           INFO PANEL
+           ============================================== */
+        .info-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .info-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .info-section {
+            margin-bottom: 10px;
+        }
+
+        .section-label {
+            font-size: 0.95em;
+            font-weight: 600;
+            color: #764ba2;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-content {
+            font-size: 0.9em;
+            color: #555;
+            line-height: 1.6;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .pros {
+            background: rgba(46, 204, 113, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #2ecc71;
+        }
+
+        .cons {
+            background: rgba(231, 76, 60, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .pros-title, .cons-title {
+            font-weight: 600;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+
+        .pros-title {
+            color: #27ae60;
+        }
+
+        .cons-title {
+            color: #c0392b;
+        }
+
+        .pros-content, .cons-content {
+            font-size: 0.8em;
+            line-height: 1.5;
+            color: #555;
+        }
+
+        .pros-content ul, .cons-content ul {
+            margin-left: 15px;
+            margin-top: 5px;
+        }
+
+        /* ==============================================
+           LEGEND
+           ============================================== */
+        .legend {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .legend-title {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .legend-item:hover {
+            background: #f8f9fa;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            border: 2px solid #ddd;
+        }
+
+        .legend-text {
+            font-size: 0.9em;
+            color: #555;
+            flex: 1;
+        }
+
+        /* ==============================================
+           ANIMATIONS
+           ============================================== */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        @keyframes slideInComponent {
+            from {
+                opacity: 0;
+                transform: translate(-20px, -20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(0, 0);
+            }
+        }
+
+        /* ==============================================
+           SVG SPECIFIC STYLES
+           ============================================== */
+        .component {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .component:hover {
+            filter: brightness(1.2);
+        }
+
+        .component-label {
+            font-size: 12px;
+            font-weight: 600;
+            pointer-events: none;
+        }
+
+        .component-text {
+            font-size: 11px;
+            pointer-events: none;
+            fill: #333;
+        }
+
+        .data-arrow {
+            stroke-width: 2;
+            marker-end: url(#arrowhead);
+            opacity: 0.7;
+        }
+
+        /* ==============================================
+           SCROLLBAR STYLING
+           ============================================== */
+        .info-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .info-panel::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .info-panel::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .info-panel::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+
+        /* ==============================================
+           FOOTER
+           ============================================== */
+        .footer {
+            background: #333;
+            color: #fff;
+            text-align: center;
+            padding: 15px;
+            font-size: 0.9em;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ==============================================
+           RESPONSIVE DESIGN
+           ============================================== */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            .visualization {
+                min-height: 400px;
+            }
+
+            .info-panel {
+                max-height: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- =============================================
+         HEADER SECTION
+         ============================================== -->
+    <header>
+        <h1>🖥️ OS Architecture Visualizer</h1>
+        <p class="subtitle">Explore and compare different operating system architectures</p>
+    </header>
+
+    <!-- =============================================
+         MAIN CONTAINER
+         ============================================== -->
+    <div class="container">
+        <!-- ========== CONTROL PANEL ========== -->
+        <div class="controls">
+            <span class="control-label">Select Architecture:</span>
+            <button class="arch-btn active" data-arch="monolithic">📦 Monolithic</button>
+            <button class="arch-btn" data-arch="microkernel">🔹 Microkernel</button>
+            <button class="arch-btn" data-arch="layered">📚 Layered</button>
+        </div>
+
+        <!-- ========== MAIN CONTENT ========== -->
+        <div class="content">
+            <!-- SVG Visualization -->
+            <div class="visualization">
+                <svg id="architectureSvg" viewBox="0 0 800 600">
+                    <!-- Arrow marker definition -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                            <polygon points="0 0, 10 3, 0 6" fill="#e74c3c" />
+                        </marker>
+                    </defs>
+                    <!-- Content will be dynamically generated -->
+                </svg>
+            </div>
+
+            <!-- ========== INFO PANEL ========== -->
+            <div class="info-panel">
+                <div class="info-title" id="infoTitle">Monolithic Architecture</div>
+
+                <!-- Description -->
+                <div class="info-section">
+                    <div class="section-label">Description</div>
+                    <div class="section-content" id="infoDescription">
+                        A single, large kernel that handles all OS functions.
+                    </div>
+                </div>
+
+                <!-- Key Characteristics -->
+                <div class="info-section">
+                    <div class="section-label">Key Characteristics</div>
+                    <div class="section-content" id="infoCharacteristics">
+                        • Single executable kernel<br>
+                        • All services in kernel space<br>
+                        • Direct function calls<br>
+                        • Fast communication
+                    </div>
+                </div>
+
+                <!-- Advantages and Disadvantages -->
+                <div class="info-section">
+                    <div class="section-label">Pros & Cons</div>
+                    <div class="pros-cons">
+                        <div class="pros">
+                            <div class="pros-title">✓ Advantages</div>
+                            <div class="pros-content">
+                                <ul id="infoAdvantages">
+                                    <li>Fast performance</li>
+                                    <li>Simple design</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="cons">
+                            <div class="cons-title">✗ Disadvantages</div>
+                            <div class="cons-content">
+                                <ul id="infoDisadvantages">
+                                    <li>Hard to maintain</li>
+                                    <li>Single failure point</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-world Examples -->
+                <div class="info-section">
+                    <div class="section-label">Real-world Examples</div>
+                    <div class="section-content" id="infoExamples">
+                        Linux, DOS, Windows (partially)
+                    </div>
+                </div>
+
+                <!-- Use Cases -->
+                <div class="info-section">
+                    <div class="section-label">Best Used For</div>
+                    <div class="section-content" id="infoUseCases">
+                        Desktop OS, High-performance systems
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== LEGEND ========== -->
+        <div style="padding: 0 30px;">
+            <div class="legend">
+                <div class="legend-title">Legend</div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #3498db;"></div>
+                    <div class="legend-text">Kernel / Core Services</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #2ecc71;"></div>
+                    <div class="legend-text">System Services</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e67e22;"></div>
+                    <div class="legend-text">User Applications</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #95a5a6;"></div>
+                    <div class="legend-text">Hardware / Utilities</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e74c3c;"></div>
+                    <div class="legend-text">Communication / Data Flow</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== FOOTER ========== -->
+        <div class="footer">
+            <p>🎓 Educational Visualization Tool | Learn OS Architecture Concepts Interactively</p>
+        </div>
+    </div>
+
+    <!-- =============================================
+         JAVASCRIPT LOGIC
+         ============================================== -->
+    <script>
+        // ===================================================
+        // ARCHITECTURE DATA DEFINITIONS
+        // ===================================================
+
+        const architectureData = {
+            monolithic: {
+                title: "Monolithic Architecture",
+                description: "A single, large kernel that handles all OS functions including process management, memory management, file system, I/O, and networking.",
+                characteristics: "• Single executable kernel<br>• All services in kernel space<br>• Direct function calls between components<br>• Fast communication between services<br>• Difficult to modify or extend",
+                advantages: ["Fast performance", "Simple design", "Efficient communication", "Easy initial implementation"],
+                disadvantages: ["Hard to maintain", "Single point of failure", "Difficult to extend", "Large memory footprint"],
+                examples: "Linux kernel, DOS, Windows 95/98",
+                useCases: "Desktop OS, High-performance systems, Embedded systems",
+                components: [
+                    { name: "Kernel", type: "kernel", y: 400 },
+                    { name: "Process Manager", type: "service", y: 300 },
+                    { name: "Memory Manager", type: "service", y: 300 },
+                    { name: "File System", type: "service", y: 500 },
+                    { name: "I/O Manager", type: "service", y: 500 },
+                    { name: "User Applications", type: "app", y: 100 }
+                ]
+            },
+            microkernel: {
+                title: "Microkernel Architecture",
+                description: "A minimal kernel that provides only essential services. Most OS functions run as independent programs in user space, communicating via message passing.",
+                characteristics: "• Minimal kernel (process scheduling, IPC)<br>• Most services as user-space programs<br>• Message-passing communication<br>• Higher overhead but better isolation<br>• Easier to modify and extend",
+                advantages: ["Better modularity", "Easier to extend", "Better fault isolation", "Easier to port"],
+                disadvantages: ["Performance overhead", "More complex communication", "Message passing latency", "Harder to debug"],
+                examples: "MINIX, Mac OS X (hybrid), QNX",
+                useCases: "Real-time systems, Microcontrollers, Distributed systems",
+                components: [
+                    { name: "Microkernel", type: "kernel", y: 400 },
+                    { name: "Memory Service", type: "service", y: 250 },
+                    { name: "File Service", type: "service", y: 250 },
+                    { name: "I/O Service", type: "service", y: 550 },
+                    { name: "Process Service", type: "service", y: 550 },
+                    { name: "User Applications", type: "app", y: 100 }
+                ]
+            },
+            layered: {
+                title: "Layered Architecture",
+                description: "The OS is structured in layers, where each layer provides services to the layer above it and uses services from the layer below it.",
+                characteristics: "• Horizontal layers of functionality<br>• Each layer uses only lower layers<br>• Layer 0 is hardware interface<br>• Layer N is user interface<br>• Clear separation of concerns",
+                advantages: ["Clear separation of concerns", "Easy to understand and maintain", "Good for learning", "Modular design"],
+                disadvantages: ["Performance overhead", "Rigidity (can't skip layers)", "Difficult to define clear layers", "Slower than monolithic"],
+                examples: "Traditional Unix, Windows NT (partially), Linux (revised model)",
+                useCases: "Educational systems, Well-structured OS, Medium complexity systems",
+                components: [
+                    { name: "User Applications", type: "app", y: 80 },
+                    { name: "User Interface / API Layer", type: "service", y: 170 },
+                    { name: "IO Manager Layer", type: "service", y: 260 },
+                    { name: "Memory Manager Layer", type: "service", y: 350 },
+                    { name: "Process Scheduler Layer", type: "service", y: 440 },
+                    { name: "Hardware Abstraction Layer", type: "service", y: 530 }
+                ]
+            }
+        };
+
+        // ===================================================
+        // COLOR DEFINITIONS
+        // ===================================================
+
+        const colors = {
+            kernel: '#3498db',      // Blue
+            service: '#2ecc71',     // Green
+            app: '#e67e22',         // Orange
+            utility: '#95a5a6',     // Gray
+            arrow: '#e74c3c',       // Red
+            kernel_dark: '#2980b9',
+            service_dark: '#27ae60',
+            app_dark: '#d35400'
+        };
+
+        // ===================================================
+        // SVG DRAWING FUNCTIONS
+        // ===================================================
+
+        /**
+         * Draws a rectangular component with text
+         * @param {Object} svg - SVG element reference
+         * @param {number} x - X coordinate
+         * @param {number} y - Y coordinate
+         * @param {number} width - Width of rectangle
+         * @param {number} height - Height of rectangle
+         * @param {string} text - Component label text
+         * @param {string} color - Fill color
+         * @param {string} componentType - Type of component
+         */
+        function drawComponent(svg, x, y, width, height, text, color, componentType) {
+            // Create group for component
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.classList.add('component');
+            g.setAttribute('data-type', componentType);
+
+            // Draw rectangle
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', x);
+            rect.setAttribute('y', y);
+            rect.setAttribute('width', width);
+            rect.setAttribute('height', height);
+            rect.setAttribute('fill', color);
+            rect.setAttribute('stroke', color);
+            rect.setAttribute('stroke-width', '2');
+            rect.setAttribute('rx', '8');
+            rect.style.transition = 'all 0.3s ease';
+
+            // Add hover effect
+            g.addEventListener('mouseover', () => {
+                rect.setAttribute('fill', lightenColor(color));
+                rect.setAttribute('stroke-width', '3');
+            });
+
+            g.addEventListener('mouseout', () => {
+                rect.setAttribute('fill', color);
+                rect.setAttribute('stroke-width', '2');
+            });
+
+            // Create text element
+            const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            textEl.setAttribute('x', x + width / 2);
+            textEl.setAttribute('y', y + height / 2 + 6);
+            textEl.setAttribute('text-anchor', 'middle');
+            textEl.setAttribute('fill', '#fff');
+            textEl.setAttribute('font-weight', 'bold');
+            textEl.setAttribute('font-size', '14');
+            textEl.classList.add('component-text');
+            textEl.textContent = text;
+
+            // Add tooltip
+            g.addEventListener('mouseenter', (e) => {
+                showComponentTooltip(e, text, componentType);
+            });
+
+            g.appendChild(rect);
+            g.appendChild(textEl);
+            svg.appendChild(g);
+        }
+
+        /**
+         * Draws an arrow between two components
+         * @param {Object} svg - SVG element reference
+         * @param {number} x1 - Starting X
+         * @param {number} y1 - Starting Y
+         * @param {number} x2 - Ending X
+         * @param {number} y2 - Ending Y
+         * @param {string} label - Arrow label (optional)
+         */
+        function drawArrow(svg, x1, y1, x2, y2, label = '') {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            line.setAttribute('stroke', colors.arrow);
+            line.setAttribute('stroke-width', '2');
+            line.setAttribute('marker-end', 'url(#arrowhead)');
+            line.classList.add('data-arrow');
+            line.style.opacity = '0.6';
+
+            svg.appendChild(line);
+
+            // Add label if provided
+            if (label) {
+                const labelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                const midX = (x1 + x2) / 2;
+                const midY = (y1 + y2) / 2 - 10;
+                labelEl.setAttribute('x', midX);
+                labelEl.setAttribute('y', midY);
+                labelEl.setAttribute('text-anchor', 'middle');
+                labelEl.setAttribute('font-size', '11');
+                labelEl.setAttribute('fill', '#666');
+                labelEl.textContent = label;
+                svg.appendChild(labelEl);
+            }
+        }
+
+        /**
+         * Lightens a hex color for hover effect
+         * @param {string} color - Hex color code
+         * @returns {string} Lightened hex color
+         */
+        function lightenColor(color) {
+            const hex = color.replace('#', '');
+            const num = parseInt(hex, 16);
+            const r = Math.min(255, (num >> 16) + 50);
+            const g = Math.min(255, ((num >> 8) & 0x00FF) + 50);
+            const b = Math.min(255, (num & 0x0000FF) + 50);
+            return '#' + (r << 16 | g << 8 | b).toString(16).padStart(6, '0');
+        }
+
+        /**
+         * Draws Monolithic Architecture
+         */
+        function drawMonolithic() {
+            const svg = document.getElementById('architectureSvg');
+            svg.innerHTML = '<defs><marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0, 10 3, 0 6" fill="#e74c3c" /></marker></defs>';
+
+            // Draw user applications
+            drawComponent(svg, 150, 50, 500, 80, 'User Applications', colors.app, 'app');
+
+            // Draw monolithic kernel (large central component)
+            drawComponent(svg, 100, 200, 600, 250, 'MONOLITHIC KERNEL\n(All Services)', colors.kernel, 'kernel');
+
+            // Draw sub-components inside conceptually
+            drawComponent(svg, 130, 230, 120, 70, 'Process\nMgmt', colors.kernel_dark, 'service');
+            drawComponent(svg, 280, 230, 120, 70, 'Memory\nMgmt', colors.kernel_dark, 'service');
+            drawComponent(svg, 430, 230, 120, 70, 'File\nSystem', colors.kernel_dark, 'service');
+            
+            drawComponent(svg, 130, 330, 120, 70, 'I/O\nManager', colors.kernel_dark, 'service');
+            drawComponent(svg, 280, 330, 120, 70, 'Network\nStack', colors.kernel_dark, 'service');
+            drawComponent(svg, 430, 330, 120, 70, 'Device\nDriver', colors.kernel_dark, 'service');
+
+            // Draw hardware
+            drawComponent(svg, 200, 500, 400, 60, 'Hardware (CPU, Memory, Devices)', colors.utility, 'hardware');
+
+            // Draw communication arrows
+            drawArrow(svg, 400, 130, 400, 200, 'System Calls');
+            drawArrow(svg, 400, 450, 400, 500, 'Hardware Access');
+
+            // Add animation to components
+            animateComponentsIn();
+        }
+
+        /**
+         * Draws Microkernel Architecture
+         */
+        function drawMicrokernel() {
+            const svg = document.getElementById('architectureSvg');
+            svg.innerHTML = '<defs><marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0, 10 3, 0 6" fill="#e74c3c" /></marker></defs>';
+
+            // Draw user applications
+            drawComponent(svg, 150, 50, 500, 60, 'User Applications', colors.app, 'app');
+
+            // Draw user-space services
+            drawComponent(svg, 80, 180, 130, 80, 'Memory\nService', colors.service, 'service');
+            drawComponent(svg, 230, 180, 130, 80, 'File\nService', colors.service, 'service');
+            drawComponent(svg, 380, 180, 130, 80, 'I/O\nService', colors.service, 'service');
+            drawComponent(svg, 530, 180, 130, 80, 'Network\nService', colors.service, 'service');
+
+            // Draw minimal microkernel
+            drawComponent(svg, 250, 330, 300, 80, 'MICROKERNEL\n(IPC, Scheduling, Timer)', colors.kernel, 'kernel');
+
+            // Draw more services below
+            drawComponent(svg, 80, 470, 130, 70, 'Device\nDriver', colors.service, 'service');
+            drawComponent(svg, 230, 470, 130, 70, 'Graphics\nService', colors.service, 'service');
+            drawComponent(svg, 380, 470, 130, 70, 'Audio\nService', colors.service, 'service');
+            drawComponent(svg, 530, 470, 130, 70, 'Privilege\nManager', colors.service, 'service');
+
+            // Draw hardware
+            drawComponent(svg, 200, 570, 400, 40, 'Hardware (CPU, Memory, Devices)', colors.utility, 'hardware');
+
+            // Draw communication arrows (message passing)
+            drawArrow(svg, 220, 140, 220, 180, 'Messages');
+            drawArrow(svg, 350, 140, 350, 180, 'Messages');
+            drawArrow(svg, 480, 140, 480, 180, 'Messages');
+
+            drawArrow(svg, 220, 260, 320, 330, 'IPC');
+            drawArrow(svg, 350, 260, 350, 330, 'IPC');
+            drawArrow(svg, 480, 260, 380, 330, 'IPC');
+
+            drawArrow(svg, 400, 410, 400, 470, 'Message');
+
+            animateComponentsIn();
+        }
+
+        /**
+         * Draws Layered Architecture
+         */
+        function drawLayered() {
+            const svg = document.getElementById('architectureSvg');
+            svg.innerHTML = '<defs><marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0, 10 3, 0 6" fill="#e74c3c" /></marker></defs>';
+
+            const layerColors = [colors.app, colors.service, colors.service, colors.service, colors.service, colors.kernel];
+            const layers = [
+                'Layer 5: User Applications',
+                'Layer 4: User Interface & Shell',
+                'Layer 3: I/O & File Management',
+                'Layer 2: Memory Management',
+                'Layer 1: Process Scheduling',
+                'Layer 0: Hardware Abstraction'
+            ];
+
+            let yPos = 60;
+            const layerHeight = 65;
+            const layerWidth = 600;
+            const startX = 100;
+
+            // Draw layers from top to bottom
+            layers.forEach((layer, index) => {
+                drawComponent(svg, startX, yPos, layerWidth, layerHeight, layer, layerColors[index], 'layer');
+                yPos += layerHeight + 10;
+            });
+
+            // Draw arrows showing data flow through layers
+            drawArrow(svg, 400, 125, 400, 135);
+            drawArrow(svg, 400, 200, 400, 210);
+            drawArrow(svg, 400, 275, 400, 285);
+            drawArrow(svg, 400, 350, 400, 360);
+            drawArrow(svg, 400, 425, 400, 435);
+
+            // Add side annotations
+            const annotation = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            annotation.setAttribute('x', 730);
+            annotation.setAttribute('y', 250);
+            annotation.setAttribute('font-size', '12');
+            annotation.setAttribute('fill', '#666');
+            annotation.setAttribute('text-anchor', 'start');
+            annotation.textContent = 'Each layer uses\nonly lower layers';
+            svg.appendChild(annotation);
+
+            animateComponentsIn();
+        }
+
+        /**
+         * Animate components sliding in
+         */
+        function animateComponentsIn() {
+            const components = document.querySelectorAll('.component');
+            components.forEach((comp, index) => {
+                comp.style.opacity = '0';
+                comp.style.animation = `slideInComponent 0.5s ease-out ${index * 0.1}s forwards`;
+            });
+        }
+
+        /**
+         * Shows tooltip on component hover
+         */
+        function showComponentTooltip(event, componentName, componentType) {
+            // Could be expanded to show detailed tooltips
+            console.log(`Hovering: ${componentName} (${componentType})`);
+        }
+
+        // ===================================================
+        // INFO PANEL UPDATE FUNCTIONS
+        // ===================================================
+
+        /**
+         * Updates the info panel with architecture details
+         * @param {string} architecture - Architecture key ('monolithic', 'microkernel', 'layered')
+         */
+        function updateInfoPanel(architecture) {
+            const data = architectureData[architecture];
+
+            // Update title
+            document.getElementById('infoTitle').textContent = data.title;
+
+            // Update description
+            document.getElementById('infoDescription').textContent = data.description;
+
+            // Update characteristics
+            document.getElementById('infoCharacteristics').innerHTML = data.characteristics;
+
+            // Update advantages
+            const advList = document.getElementById('infoAdvantages');
+            advList.innerHTML = data.advantages.map(adv => `<li>${adv}</li>`).join('');
+
+            // Update disadvantages
+            const disList = document.getElementById('infoDisadvantages');
+            disList.innerHTML = data.disadvantages.map(dis => `<li>${dis}</li>`).join('');
+
+            // Update examples
+            document.getElementById('infoExamples').textContent = data.examples;
+
+            // Update use cases
+            document.getElementById('infoUseCases').textContent = data.useCases;
+        }
+
+        // ===================================================
+        // EVENT LISTENERS & INITIALIZATION
+        // ===================================================
+
+        // Get all architecture buttons
+        const archButtons = document.querySelectorAll('.arch-btn');
+
+        // Add click event listeners to buttons
+        archButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const architecture = button.getAttribute('data-arch');
+
+                // Remove active class from all buttons
+                archButtons.forEach(btn => btn.classList.remove('active'));
+
+                // Add active class to clicked button
+                button.classList.add('active');
+
+                // Update visualization and info panel
+                switch(architecture) {
+                    case 'monolithic':
+                        drawMonolithic();
+                        break;
+                    case 'microkernel':
+                        drawMicrokernel();
+                        break;
+                    case 'layered':
+                        drawLayered();
+                        break;
+                }
+
+                updateInfoPanel(architecture);
+            });
+        });
+
+        // Initialize with monolithic architecture on page load
+        window.addEventListener('load', () => {
+            drawMonolithic();
+            updateInfoPanel('monolithic');
+        });
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '1') archButtons[0].click();
+            if (e.key === '2') archButtons[1].click();
+            if (e.key === '3') archButtons[2].click();
+        });
+
+        // Add smooth scroll behavior
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // ===================================================
+        // FIREBASE INTEGRATION
+        // ===================================================
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "XXXX",
+            appId: "XXXX"
+        };
+
+        // Initialize Firebase (commented out until config is updated)
+        let db = null;
+        let firebaseInitialized = false;
+
+        /**
+         * Initialize Firebase when configuration is provided
+         */
+        function initializeFirebase() {
+            // Dynamically import Firebase only when needed
+            if (firebaseConfig.projectId !== 'YOUR_PROJECT_ID' && !firebaseInitialized) {
+                console.log('Firebase configuration detected. Initializing...');
+                // Configuration is ready, you can uncomment the Firebase code below
+                firebaseInitialized = true;
+                console.log('Firebase ready for use');
+            }
+        }
+
+        /**
+         * Save selected architecture to Firebase
+         * @param {string} architectureType - Type of architecture selected
+         * @param {boolean} sendToFirebase - Whether to actually send to Firebase
+         */
+        async function saveArchitectureToFirebase(architectureType) {
+            if (!firebaseInitialized) {
+                console.log('Firebase not initialized. Skipping save.');
+                console.log('To enable Firebase, update firebaseConfig with your credentials');
+                return;
+            }
+
+            try {
+                // Uncomment this section once Firebase is configured:
+                /*
+                const response = await fetch('/.netlify/functions/saveArchitecture', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        selected: architectureType,
+                        timestamp: new Date().toISOString(),
+                        url: window.location.href
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log('Architecture selection saved to Firebase:', architectureType);
+                }
+                */
+                
+                // For now, just log locally
+                console.log('📊 Architecture Selected:', architectureType, 'at', new Date().toLocaleTimeString());
+                
+            } catch (error) {
+                console.error('Error saving to Firebase:', error);
+            }
+        }
+
+        /**
+         * Track analytics event
+         * @param {string} eventName - Name of the event
+         * @param {Object} eventData - Event data
+         */
+        function trackEvent(eventName, eventData = {}) {
+            const eventLog = {
+                event: eventName,
+                timestamp: new Date().toISOString(),
+                ...eventData
+            };
+            console.log('📈 Event Tracked:', eventLog);
+            
+            // Send to Firebase if initialized
+            if (firebaseInitialized) {
+                saveArchitectureToFirebase(eventData.architecture);
+            }
+        }
+
+        // Initialize Firebase configuration check
+        initializeFirebase();
+
+        // Modify existing button click handlers to include Firebase tracking
+        const originalArchButtonListener = () => {
+            archButtons.forEach(button => {
+                const originalClickHandler = button.onclick;
+                button.addEventListener('click', function(e) {
+                    const architecture = this.getAttribute('data-arch');
+                    // Track the selection
+                    trackEvent('architecture_selected', { 
+                        architecture: architecture,
+                        timestamp: new Date().toISOString()
+                    });
+                });
+            });
+        };
+
+        // Call after buttons are set up
+        if (typeof archButtons !== 'undefined') {
+            originalArchButtonListener();
+        }
+
+        // Log page view
+        trackEvent('page_loaded', {
+            page: 'OS Architecture Visualizer',
+            timestamp: new Date().toISOString()
+        });
+    </script>
+
+    <!-- ===================================================
+         FIREBASE SDK SCRIPT (Module Import)
+         Uncomment and configure when ready to use Firebase
+         =================================================== -->
+    <!-- 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "XXXX",
+            appId: "XXXX"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Make saveArchitecture global for use in main script
+        window.saveArchitectureToFirebaseModule = async function(type) {
+            try {
+                await addDoc(collection(db, "architectures"), {
+                    selected: type,
+                    timestamp: new Date().toISOString(),
+                    url: window.location.href
+                });
+                console.log("✅ Saved to Firebase:", type);
+            } catch (e) {
+                console.error("❌ Firebase Error:", e);
+            }
+        };
+    </script>
+    -->
+</body>
+</html>
